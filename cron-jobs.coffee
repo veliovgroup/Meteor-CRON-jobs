@@ -14,7 +14,7 @@ class CRONjob
       added: (doc) -> 
         Meteor.setTimeout ->
           currentTask = self.collection.findOne {uid: doc.uid}
-          if currentTask.inProgress is false
+          if currentTask and currentTask?.inProgress is false
             ready = -> 
               if doc.interval is true
                 self.collection.update {uid: doc.uid}, 
