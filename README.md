@@ -1,4 +1,4 @@
-CRON Jobs fro meteor
+CRON Jobs for meteor
 ========
 Simple package with similar API to native `setTimeout` and `setInterval` methods, but synced between all running NodeJS (Meteor) instances.
 
