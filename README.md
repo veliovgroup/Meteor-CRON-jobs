@@ -2,9 +2,18 @@ CRON Jobs for meteor
 ========
 Simple package with similar API to native `setTimeout` and `setInterval` methods, but synced between all running NodeJS (Meteor) instances.
 
-Multi-instance task manager for Meteor. This package support cluster or multi-thread NodeJS instances. This package will help you to make sure only one process of each task is running.
+Multi-instance task manager for Meteor. This package has support of cluster or multi-thread NodeJS instances. This package will help you to make sure only one process of each task is running.
 
 __This is server-only package.__
+
+- [Install](https://github.com/VeliovGroup/Meteor-CRON-jobs#install)
+- [API](https://github.com/VeliovGroup/Meteor-CRON-jobs#api)
+- [Constructor](https://github.com/VeliovGroup/Meteor-CRON-jobs#initialization)
+- [setInterval](https://github.com/VeliovGroup/Meteor-CRON-jobs#setintervalfunc-delay)
+- [setTimeout](https://github.com/VeliovGroup/Meteor-CRON-jobs#settimeoutfunc-delay)
+- [setImmidiate](https://github.com/VeliovGroup/Meteor-CRON-jobs#setimmidiatefunc)
+- [clearInterval](https://github.com/VeliovGroup/Meteor-CRON-jobs#clearintervaltimer)
+- [clearTimeout](https://github.com/VeliovGroup/Meteor-CRON-jobs#cleartimeouttimer)
 
 Install:
 ========
@@ -34,8 +43,8 @@ var task = function (ready) {
   ready();
 };
 
-CRON1.setInterval(syncTask, 60*60*1000);
-CRON2.setInterval(syncTask, 60*60*2000);
+CRON1.setInterval(task, 60*60*1000);
+CRON2.setInterval(task, 60*60*2000);
 ```
 
 Passing arguments (*not really fancy solution, sorry*):
@@ -56,13 +65,13 @@ var task1 = function (ready) {
   task(1, globalVar, ready);
 };
 
-CRON.setInterval(taskAB, 60*60*1000);
-CRON.setInterval(task12, 60*60*1000);
+CRON.setInterval(taskB, 60*60*1000);
+CRON.setInterval(task1, 60*60*1000);
 ```
 
 
 #### `setInterval(func, delay)`
-*Set task into interval execution. You can not set same function multiple times into interval.*
+*Set task into interval execution loop. You can not set same function multiple times into interval.*
 `ready()` *is passed as argument into function, and must be called in all tasks.*
 
 In this example, next task will not be scheduled until current is ready:
@@ -82,7 +91,7 @@ CRON.setInterval(syncTask, 60*60*1000);
 CRON.setInterval(asyncTask, 60*60*1000);
 ```
 
-In this example, next task will not wait for current is ready:
+In this example, next task will not wait for current task is ready:
 ```javascript
 var syncTask = function (ready) {
   ready();
@@ -142,7 +151,7 @@ CRON.setTimeout(asyncTask, 60*60*1000);
 
 #### `setImmidiate(func)`
 *Immediate execute function, and only once. You can not set same function multiple times into immediate execution.*
-*`setImmidiate` is useful for cluster - when you need to execute function immediately and only once.*
+`setImmidiate` *is useful for cluster - when you need to execute function immediately and only once.*
 `ready()` *is passed as argument into function, and must be called in all tasks.*
 
 ```javascript
