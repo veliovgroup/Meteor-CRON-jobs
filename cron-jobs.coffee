@@ -27,7 +27,11 @@ class CRONjob
             self.collection.update {uid: doc.uid}, $set: inProgress: true
 
             Meteor.setTimeout ->
-              self.tasks[doc.uid](ready)
+              if self.tasks?[doc.uid]
+                self.tasks[doc.uid](ready)
+              else
+                console.warn 'something went wrong some of your tasks is missing, try to use different instances'
+                console.trace()
             , doc.delay
         , Math.random() * (150 - 1) + 1
 
@@ -45,7 +49,11 @@ class CRONjob
               self.collection.update {uid: newDocument.uid}, $set: inProgress: true
 
               Meteor.setTimeout ->
-                self.tasks[newDocument.uid](ready)
+                if self.tasks?[newDocument.uid]
+                  self.tasks[newDocument.uid](ready)
+                else
+                  console.warn 'something went wrong some of your tasks is missing, try to use different instances'
+                  console.trace()
               , newDocument.delay
           , Math.random() * (150 - 1) + 1
 
