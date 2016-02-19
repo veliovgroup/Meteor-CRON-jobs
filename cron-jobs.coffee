@@ -30,7 +30,7 @@ class CRONjob
               if self.tasks?[doc.uid]
                 self.tasks[doc.uid](ready)
               else
-                console.warn 'something went wrong some of your tasks is missing, try to use different instances'
+                console.warn 'Something went wrong with one of your tasks - it\'s is missing. Try to use different instances.'
                 console.trace()
             , doc.delay
         , Math.random() * (150 - 1) + 1
@@ -39,7 +39,7 @@ class CRONjob
         if newDocument.interval is true and newDocument.inProgress is false
           Meteor.setTimeout ->
             currentTask = self.collection.findOne {uid: newDocument.uid}
-            if currentTask.inProgress is false
+            if currentTask and currentTask?.inProgress is false
               ready = -> 
                 self.collection.update {uid: newDocument.uid}, 
                   $set: 
@@ -52,7 +52,7 @@ class CRONjob
                 if self.tasks?[newDocument.uid]
                   self.tasks[newDocument.uid](ready)
                 else
-                  console.warn 'something went wrong some of your tasks is missing, try to use different instances'
+                  console.warn 'Something went wrong with one of your tasks - it\'s is missing. Try to use different instances.'
                   console.trace()
               , newDocument.delay
           , Math.random() * (150 - 1) + 1
