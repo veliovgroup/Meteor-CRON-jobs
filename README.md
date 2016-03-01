@@ -23,6 +23,11 @@ meteor add ostrio:cron-jobs
 
 API:
 ========
+`new CRONjob([prefix, resetOnInit])`:
+
+ - `prefix` {*String*} - [Optional] use to create multiple named instances
+ - `resetOnInit` {*Boolean*} - [Optional] make sure all old tasks is completed before set new one. Useful when you run only one instance of app, or multiple app instances on one machine, in case machine was reloaded during running task and task is unfinished
+
 #### Initialization:
 ```javascript
 var CRON = new CRONjob();

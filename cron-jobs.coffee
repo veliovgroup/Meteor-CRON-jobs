@@ -1,9 +1,13 @@
 class CRONjob
-  constructor: (prefix = '') ->
+  constructor: (prefix = '', resetOnInit = false) ->
     check prefix, String
 
     @collection = new Mongo.Collection "__CRONjobs__#{prefix}"
     @collection._ensureIndex {uid: 1}, {background: true, unique: true}
+    @collection._ensureIndex {executeAt: 1, inProgress: 1}, {background: true}
+
+    if resetOnInit
+      @collection.update {}, {$set: inProgress: false}, () -> true
     
     @tasks = {}
     @__poll()
@@ -89,6 +93,8 @@ class CRONjob
         isInterval: isInterval
         inProgress: false
       , () -> true
+    else if task.delay isnt delay
+      @collection.update {uid}, {$set: {delay}}, () -> true
 
   __execute: (task) ->
     self = @
