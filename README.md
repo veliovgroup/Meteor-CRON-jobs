@@ -116,7 +116,6 @@ CRON.setInterval(asyncTask, 60*60*1000);
 In this example, we're assuming to have long running task, and execute it in a loop without delay, but after full execution:
 ```javascript
 var longRunningAsyncTask = function (ready) {
-  ready();
   asyncCall(function (error, result) {
     if(error){
       ready(); // <-- Always run `ready()`, even if call was unsuccessful
