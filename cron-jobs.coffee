@@ -1,6 +1,8 @@
 class CRONjob
-  constructor: (prefix = '', resetOnInit = false) ->
+  constructor: (prefix = '', resetOnInit = false, @zombieTime = 900000) ->
     check prefix, String
+    check resetOnInit, Boolean
+    check @zombieTime, Number
 
     @collection = new Mongo.Collection "__CRONjobs__#{prefix}"
     @collection._ensureIndex {uid: 1}, {background: true, unique: true}
@@ -8,6 +10,7 @@ class CRONjob
 
     if resetOnInit
       @collection.update {}, {$set: inProgress: false}, () -> true
+      @collection.remove {isInterval: false}, () -> true
     
     @tasks = {}
     @__poll()
@@ -16,8 +19,13 @@ class CRONjob
     self = @
     Meteor.setTimeout ->
       cursor = self.collection.find
-        executeAt: $lte: new Date()
-        inProgress: false
+        $or: [{
+          executeAt: $lte: new Date()
+          inProgress: false
+        }, {
+          executeAt: $lte: new Date((+new Date) - self.zombieTime)
+          inProgress: true
+        }]
 
       count  = cursor.count()
       if count > 0
@@ -93,8 +101,18 @@ class CRONjob
         isInterval: isInterval
         inProgress: false
       , () -> true
-    else if task.delay isnt delay
-      @collection.update {uid}, {$set: {delay}}, () -> true
+    else
+      update = null
+      if task.delay isnt delay
+        update ?= {}
+        update.delay = delay
+
+      if +task.executeAt > +new Date() + delay
+        update ?= {}
+        update.executeAt = new Date((+new Date) + delay)
+      
+      if update
+        @collection.update {uid}, {$set: update}, () -> true
 
   __execute: (task) ->
     self = @
