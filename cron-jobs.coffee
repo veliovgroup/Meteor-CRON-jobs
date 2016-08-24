@@ -1,3 +1,5 @@
+NoOp =-> return
+
 class CRONjob
   constructor: (prefix = '', resetOnInit = false, @zombieTime = 900000) ->
     check prefix, String
@@ -9,8 +11,8 @@ class CRONjob
     @collection._ensureIndex {executeAt: 1, inProgress: 1}, {background: true}
 
     if resetOnInit
-      @collection.update {}, {$set: inProgress: false}, () -> true
-      @collection.remove {isInterval: false}, () -> true
+      @collection.update {}, {$set: inProgress: false}, NoOp
+      @collection.remove {isInterval: false}, NoOp
     
     @tasks = {}
     @__poll()
@@ -37,9 +39,10 @@ class CRONjob
             self.__execute task
           if i is count
             self.__poll()
+          return
       else
         self.__poll()
-
+      return
     , Math.random() * (2500 - 1500) + 1500
 
   setInterval: (func, delay) ->
@@ -82,8 +85,9 @@ class CRONjob
       $unset: 
         executeAt: ''
         inProgress: ''
-    , () ->
-      self.collection.remove {uid}, () -> return true
+    , ->
+      self.collection.remove {uid}, NoOp
+      return
     delete @tasks[uid] if @tasks?[uid]
     return true
 
@@ -100,7 +104,7 @@ class CRONjob
         executeAt:  new Date((+new Date) + delay)
         isInterval: isInterval
         inProgress: false
-      , () -> true
+      , NoOp
     else
       update = null
       if task.delay isnt delay
@@ -112,22 +116,27 @@ class CRONjob
         update.executeAt = new Date((+new Date) + delay)
       
       if update
-        @collection.update {uid}, {$set: update}, () -> true
+        @collection.update {uid}, {$set: update}, NoOp
+    return
 
   __execute: (task) ->
     self = @
-    @collection.update {uid: task.uid}, {$set: inProgress: true}, () ->
+    @collection.update {uid: task.uid}, {$set: inProgress: true}, ->
       if self.tasks?[task.uid]
-        ready = -> 
+        ready = ->
           if task.isInterval is true
             self.collection.update {uid: task.uid}, 
               $set: 
                 executeAt:  new Date((+new Date) + task.delay)
                 inProgress: false
+            , NoOp
           else
             self.__clear task.uid
+          return
 
         self.tasks[task.uid](ready)
       else
         console.warn 'Something went wrong with one of your tasks - it\'s is missing. Try to use different instances.'
         console.trace()
+      return
+    return
