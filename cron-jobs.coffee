@@ -1,4 +1,5 @@
 NoOp =-> return
+bound = Meteor.bindEnvironment (callback) -> return callback()
 
 class CRONjob
   constructor: (prefix = '', resetOnInit = false, @zombieTime = 900000) ->
@@ -13,61 +14,85 @@ class CRONjob
     if resetOnInit
       @collection.update {}, {$set: inProgress: false}, NoOp
       @collection.remove {isInterval: false}, NoOp
-    
     @tasks = {}
     @__poll()
 
   __poll: ->
     self = @
     Meteor.setTimeout ->
-      cursor = self.collection.find
-        $or: [{
-          executeAt: $lte: new Date()
-          inProgress: false
-        }, {
-          executeAt: $lte: new Date((+new Date) - self.zombieTime)
-          inProgress: true
-        }]
+      try
+        cursor = self.collection.find
+          $or: [{
+            executeAt: $lte: new Date()
+            inProgress: false
+          }, {
+            executeAt: $lte: new Date((+new Date) - self.zombieTime)
+            inProgress: true
+          }]
 
-      count  = cursor.count()
-      if count > 0
-        i = 0
+        count  = cursor.count()
+        if count > 0
+          i = 0
 
-        cursor.forEach (task) ->
-          ++i
-          if self.tasks?[task.uid]
-            self.__execute task
-          if i is count
-            self.__poll()
-          return
-      else
+          cursor.forEach (task) ->
+            ++i
+            if self.tasks?[task.uid]
+              process.nextTick -> 
+                bound ->
+                  self.__execute task
+                  return
+                return
+            if i is count
+              self.__poll()
+            return
+        else
+          self.__poll()
+      catch
         self.__poll()
       return
-    , Math.random() * (2500 - 1500) + 1500
+    , Math.random() * (850) + 150
 
-  setInterval: (func, delay) ->
+  setInterval: (func, delay, uid) ->
     check func,  Function
     check delay, Number
+    check uid, String
 
     throw new Meteor.Error 500, '[ostrio:cron-jobs] [setInterval] delay must be positive Number!' if delay < 0
-    uid = SHA256 'setInterval' + func
+
+    if uid
+      uid += 'setInterval'
+    else
+      uid ?= SHA256 'setInterval' + func
+
     @tasks[uid] = func
     @__addTask uid, true, delay
     return uid
 
-  setTimeout: (func, delay) ->
+  setTimeout: (func, delay, uid) ->
     check func,  Function
     check delay, Number
+    check uid, String
 
     throw new Meteor.Error 500, '[ostrio:cron-jobs] [setTimeout] delay must be positive Number!' if delay < 0
-    uid = SHA256 'setTimeout' + func
+
+    if uid
+      uid += 'setTimeout'
+    else
+      uid = SHA256 'setTimeout' + func
+
     @tasks[uid] = func
     @__addTask uid, false, delay
     return uid
 
-  setImmediate: (func) -> 
+  setImmediate: (func, uid) -> 
     check func, Function
-    uid = SHA256 'setImmediate' + func
+    check uid, String
+
+    if uid
+      uid += 'setImmediate'
+    else
+      uid = SHA256 'setImmediate' + func
+
     @tasks[uid] = func
     @__addTask uid, false, 0
     return uid
@@ -140,3 +165,8 @@ class CRONjob
         console.trace()
       return
     return
+
+###
+Export the CRONjob class
+###
+`export { CRONjob }`

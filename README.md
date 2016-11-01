@@ -21,6 +21,12 @@ Install:
 meteor add ostrio:cron-jobs
 ```
 
+ES6 Import:
+======
+```jsx
+import { CRONjob } from 'meteor/ostrio:cron-jobs';
+```
+
 API:
 ========
 `new CRONjob([prefix, resetOnInit])`:
@@ -49,8 +55,8 @@ var task = function (ready) {
   ready();
 };
 
-CRON1.setInterval(task, 60*60*1000);
-CRON2.setInterval(task, 60*60*2000);
+CRON1.setInterval(task, 60*60*1000, 'task-1000');
+CRON2.setInterval(task, 60*60*2000, 'task-2000');
 ```
 
 Passing arguments (*not really fancy solution, sorry*):
@@ -71,12 +77,25 @@ var task1 = function (ready) {
   task(1, globalVar, ready);
 };
 
-CRON.setInterval(taskB, 60*60*1000);
-CRON.setInterval(task1, 60*60*1000);
+CRON.setInterval(taskB, 60*60*1000, 'taskB');
+CRON.setInterval(task1, 60*60*1000, 'task1');
+```
+
+Note: This library uses on function names and its contents, so after deploying new version of your application to server, you need to clean up old tasks:
+```js
+// Run directly in MongoDB console:
+db.getCollection('__CRONjobs__').remove({});
+// If you're using multiple CRONjob instances with prefix:
+db.getCollection('__CRONjobs__PrefixHere').remove({});
 ```
 
 
-#### `setInterval(func, delay)`
+#### `setInterval(func, delay, uid)`
+
+ - `func`  {*Function*} - Function to call on schedule
+ - `delay` {*Number*}   - Delay for first run and interval between further executions in milliseconds
+ - `uid`   {*String*}   - [Optional] recommended to set. Unique app-wide task id
+
 *Set task into interval execution loop. You can not set same function multiple times into interval.*
 `ready()` *is passed as argument into function, and must be called in all tasks.*
 
@@ -93,8 +112,8 @@ var asyncTask = function (ready) {
   });
 };
 
-CRON.setInterval(syncTask, 60*60*1000);
-CRON.setInterval(asyncTask, 60*60*1000);
+CRON.setInterval(syncTask, 60*60*1000, 'syncTask');
+CRON.setInterval(asyncTask, 60*60*1000, 'asyncTask');
 ```
 
 In this example, next task will not wait for current task is ready:
@@ -110,8 +129,8 @@ var asyncTask = function (ready) {
   });
 };
 
-CRON.setInterval(syncTask, 60*60*1000);
-CRON.setInterval(asyncTask, 60*60*1000);
+CRON.setInterval(syncTask, 60*60*1000, 'syncTask');
+CRON.setInterval(asyncTask, 60*60*1000, 'asyncTask');
 ```
 
 In this example, we're assuming to have long running task, and execute it in a loop without delay, but after full execution:
@@ -130,10 +149,15 @@ var longRunningAsyncTask = function (ready) {
   });
 };
 
-CRON.setInterval(longRunningAsyncTask, 0);
+CRON.setInterval(longRunningAsyncTask, 0, 'longRunningAsyncTask');
 ```
 
-#### `setTimeout(func, delay)`
+#### `setTimeout(func, delay, uid)`
+
+ - `func`  {*Function*} - Function to call on schedule
+ - `delay` {*Number*}   - Delay in milliseconds
+ - `uid`   {*String*}   - [Optional] recommended to set. Unique app-wide task id
+
 *Set task into timeout execution. You can not set same function multiple times into timeout.*
 *`setTimeout` is useful for cluster - when you need to make sure task was executed only once.*
 `ready()` *is passed as argument into function, and must be called in all tasks.*
@@ -150,11 +174,15 @@ var asyncTask = function (ready) {
   });
 };
 
-CRON.setTimeout(syncTask, 60*60*1000);
-CRON.setTimeout(asyncTask, 60*60*1000);
+CRON.setTimeout(syncTask, 60*60*1000, 'syncTask');
+CRON.setTimeout(asyncTask, 60*60*1000, 'asyncTask');
 ```
 
-#### `setImmidiate(func)`
+#### `setImmidiate(func, uid)`
+
+ - `func` {*Function*} - Function to execute
+ - `uid`  {*String*}   - [Optional] recommended to set. Unique app-wide task id
+
 *Immediate execute function, and only once. You can not set same function multiple times into immediate execution.*
 `setImmidiate` *is useful for cluster - when you need to execute function immediately and only once.*
 `ready()` *is passed as argument into function, and must be called in all tasks.*
@@ -171,8 +199,8 @@ var asyncTask = function (ready) {
   });
 };
 
-CRON.setImmidiate(syncTask);
-CRON.setImmidiate(asyncTask);
+CRON.setImmidiate(syncTask, 'syncTask');
+CRON.setImmidiate(asyncTask, 'asyncTask');
 ```
 
 #### `clearInterval(timer)`
