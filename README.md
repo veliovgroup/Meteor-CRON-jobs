@@ -81,7 +81,7 @@ CRON.setInterval(taskB, 60*60*1000, 'taskB');
 CRON.setInterval(task1, 60*60*1000, 'task1');
 ```
 
-Note: This library uses on function names and its contents, so after deploying new version of your application to server, you need to clean up old tasks:
+Note: To cleanup old tasks via MongoDB use next query pattern:
 ```js
 // Run directly in MongoDB console:
 db.getCollection('__CRONjobs__').remove({});

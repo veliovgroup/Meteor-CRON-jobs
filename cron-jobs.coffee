@@ -7,19 +7,18 @@ class CRONjob
     check resetOnInit, Boolean
     check @zombieTime, Number
 
+    self = @
     @collection = new Mongo.Collection "__CRONjobs__#{prefix}"
     @collection._ensureIndex {uid: 1}, {background: true, unique: true}
+    @collection._ensureIndex {uid: 1, inProgress: 1}
     @collection._ensureIndex {executeAt: 1, inProgress: 1}, {background: true}
 
     if resetOnInit
       @collection.update {}, {$set: inProgress: false}, NoOp
       @collection.remove {isInterval: false}, NoOp
     @tasks = {}
-    @__poll()
 
-  __poll: ->
-    self = @
-    Meteor.setTimeout ->
+    Meteor.setInterval ->
       try
         cursor = self.collection.find
           $or: [{
@@ -30,32 +29,23 @@ class CRONjob
             inProgress: true
           }]
 
-        count  = cursor.count()
-        if count > 0
-          i = 0
-
-          cursor.forEach (task) ->
-            ++i
-            if self.tasks?[task.uid]
-              process.nextTick -> 
-                bound ->
-                  self.__execute task
-                  return
+        cursor.forEach (task) ->
+          if self.tasks?[task.uid]
+            process.nextTick ->
+              bound ->
+                self.__execute task
                 return
-            if i is count
-              self.__poll()
-            return
-        else
-          self.__poll()
+              return
+          return
       catch
-        self.__poll()
+        return
       return
-    , Math.random() * (850) + 150
+    , Math.random() * (500) + 50
 
   setInterval: (func, delay, uid) ->
     check func,  Function
     check delay, Number
-    check uid, String
+    check uid, Match.Optional String
 
     throw new Meteor.Error 500, '[ostrio:cron-jobs] [setInterval] delay must be positive Number!' if delay < 0
 
@@ -71,7 +61,7 @@ class CRONjob
   setTimeout: (func, delay, uid) ->
     check func,  Function
     check delay, Number
-    check uid, String
+    check uid, Match.Optional String
 
     throw new Meteor.Error 500, '[ostrio:cron-jobs] [setTimeout] delay must be positive Number!' if delay < 0
 
@@ -86,7 +76,7 @@ class CRONjob
 
   setImmediate: (func, uid) -> 
     check func, Function
-    check uid, String
+    check uid, Match.Optional String
 
     if uid
       uid += 'setImmediate'
@@ -97,11 +87,8 @@ class CRONjob
     @__addTask uid, false, 0
     return uid
 
-  clearInterval: -> 
-    @__clear.apply @, arguments
-
-  clearTimeout: -> 
-    @__clear.apply @, arguments
+  clearInterval: -> @__clear.apply @, arguments
+  clearTimeout:  -> @__clear.apply @, arguments
 
   __clear: (uid) ->
     check uid, String
@@ -146,7 +133,7 @@ class CRONjob
 
   __execute: (task) ->
     self = @
-    @collection.update {uid: task.uid}, {$set: inProgress: true}, ->
+    @collection.update {uid: task.uid, inProgress: false}, {$set: inProgress: true}, ->
       if self.tasks?[task.uid]
         ready = ->
           if task.isInterval is true
