@@ -6,6 +6,7 @@ Multi-instance task manager for Node.js. This package has support of cluster or 
 
 __This is server-only package.__
 
+- [NPM version](https://github.com/VeliovGroup/josk)
 - [Install](https://github.com/VeliovGroup/Meteor-CRON-jobs#install)
 - [API](https://github.com/VeliovGroup/Meteor-CRON-jobs#api)
 - [Constructor](https://github.com/VeliovGroup/Meteor-CRON-jobs#initialization)
