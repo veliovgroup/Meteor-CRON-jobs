@@ -5,6 +5,6 @@ ecmascript-runtime@0.3.12
 meteor@1.2.16
 modules@0.7.5
 modules-runtime@0.7.5
-ostrio:cron-jobs@2.0.0
+ostrio:cron-jobs@2.0.1
 promise@0.8.3
 underscore@1.0.9
