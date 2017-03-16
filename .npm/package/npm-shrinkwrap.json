@@ -31,9 +31,9 @@
       "from": "isarray@>=1.0.0 <1.1.0"
     },
     "josk": {
-      "version": "1.0.1",
-      "resolved": "https://registry.npmjs.org/josk/-/josk-1.0.1.tgz",
-      "from": "josk@1.0.1"
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/josk/-/josk-1.0.2.tgz",
+      "from": "josk@1.0.2"
     },
     "mongodb": {
       "version": "2.2.24",
