@@ -2,9 +2,9 @@ CRON Jobs for meteor
 ========
 Simple package with similar API to native `setTimeout` and `setInterval` methods, but synced between all running Meteor (NodeJS) instances.
 
-Multi-instance task manager for Node.js. This package has support of cluster or multi-thread NodeJS instances. This package will help you to make sure only one process of each task is running.
+Multi-instance task manager for Node.js. This package has the support of cluster or multi-thread NodeJS instances. This package will help you to make sure only one process of each task is running.
 
-__This is server-only package.__
+__This is a server-only package.__
 
 - [NPM version](https://github.com/VeliovGroup/josk)
 - [Install](https://github.com/VeliovGroup/Meteor-CRON-jobs#install)
@@ -40,10 +40,10 @@ const bound = Meteor.bindEnvironment((callback) => {
   callback();
 });
 
-var db   = Collection.rawDatabase();
-var CRON = new CRONjob({db: db});
+const db   = Collection.rawDatabase();
+const CRON = new CRONjob({db: db});
 
-var task = (ready) => {
+const task = (ready) => {
   bound(() => {
     ready();
   });
@@ -57,20 +57,20 @@ API:
 `new CRONjob({opts})`:
  - `opts.db` {*Object*} - [Required] Connection to MongoDB
  - `opts.prefix` {*String*} - [Optional] use to create multiple named instances
- - `opts.resetOnInit` {*Boolean*} - [Optional] make sure all old tasks is completed before set new one. Useful when you run only one instance of app, or multiple app instances on one machine, in case machine was reloaded during running task and task is unfinished
- - `opts.zombieTime` {*Number*} - [Optional] time in milliseconds, after this time - task will be interpreted as "*zombie*". This parameter allows to rescue task from "*zombie* mode" in case when `ready()` wasn't called, exception during runtime was thrown, or caused by bad logic. Where `resetOnInit` makes sure task is done on startup, but `zombieTime` doing the same function but during runtime. Default value is `900000` (*15 minutes*)
+ - `opts.resetOnInit` {*Boolean*} - [Optional] make sure all old tasks is completed before set new one. Useful when you run only one instance of the app, or multiple app instances on one machine, in case machine was reloaded during running task and task are unfinished
+ - `opts.zombieTime` {*Number*} - [Optional] time in milliseconds, after this time - the task will be interpreted as "*zombie*". This parameter allows to rescue task from "*zombie* mode" in the case when `ready()` wasn't called, an exception during runtime was thrown, or caused by bad logic. Where `resetOnInit` makes sure task is done on the startup, but `zombieTime` doing the same function but during runtime. The default value is `900000` (*15 minutes*).
 
 #### Initialization:
 ```javascript
 // Meteor.users.rawDatabase() is available in most Meteor setups
 // If this is not your case, you can use `rawDatabase` form any other collection
-var db   = Meteor.users.rawDatabase();
-var CRON = new CRONjob({db: db});
+const db   = Meteor.users.rawDatabase();
+const CRON = new CRONjob({db: db});
 ```
 
-Note: This library relies on job ID, so you can not pass same job (with same ID). Always use different `uid`, even for same task:
+Note: This library relies on job ID, so you can not pass the same job (with same ID). Always use different `uid`, even for the same task:
 ```javascript
-var task = function (ready) {
+const task = function (ready) {
   //...some code here
   ready();
 };
@@ -81,19 +81,19 @@ CRON.setInterval(task, 60*60*2000, 'task-2000');
 
 Passing arguments (*not really fancy solution, sorry*):
 ```javascript
-var CRON      = new CRONjob({db: db});
-var globalVar = 'Some top level or env.variable (can be changed over time)';
+const CRON      = new CRONjob({db: db});
+const globalVar = 'Some top level or env.variable (can be changed over time)';
 
-var task = function (arg1, arg2, ready) {
+const task = function (arg1, arg2, ready) {
   //...some code here
   ready();
 };
 
-var taskB = function (ready) {
+const taskB = function (ready) {
   task(globalVar, 'b', ready);
 };
 
-var task1 = function (ready) {
+const task1 = function (ready) {
   task(1, globalVar, ready);
 };
 
@@ -101,7 +101,7 @@ CRON.setInterval(taskB, 60*60*1000, 'taskB');
 CRON.setInterval(task1, 60*60*1000, 'task1');
 ```
 
-Note: To cleanup old tasks via MongoDB use next query pattern:
+Note: To clean up old tasks via MongoDB use next query pattern:
 ```js
 // Run directly in MongoDB console:
 db.getCollection('__JobTasks__').remove({});
@@ -112,19 +112,20 @@ db.getCollection('__JobTasks__PrefixHere').remove({});
 
 #### `setInterval(func, delay, uid)`
 
- - `func`  {*Function*} - Function to call on schedule
+ - `func`  {*Function*} - Function to call by schedule
  - `delay` {*Number*}   - Delay for first run and interval between further executions in milliseconds
  - `uid`   {*String*}   - Unique app-wide task id
 
 *Set task into interval execution loop.* `ready()` *is passed as third argument into function.*
 
-In this example, next task will not be scheduled until current is ready:
+In this example, next task will not be scheduled until the current is ready:
 ```javascript
-var syncTask = function (ready) {
+const syncTask = function (ready) {
   //...run sync code
   ready();
 };
-var asyncTask = function (ready) {
+
+const asyncTask = function (ready) {
   asyncCall(function () {
     //...run more async code
     ready();
@@ -135,13 +136,14 @@ CRON.setInterval(syncTask, 60*60*1000, 'syncTask');
 CRON.setInterval(asyncTask, 60*60*1000, 'asyncTask');
 ```
 
-In this example, next task will not wait for current task to finish:
+In this example, next task will not wait for the current task to finish:
 ```javascript
-var syncTask = function (ready) {
+const syncTask = function (ready) {
   ready();
   //...run sync code
 };
-var asyncTask = function (ready) {
+
+const asyncTask = function (ready) {
   ready();
   asyncCall(function () {
     //...run more async code
@@ -154,7 +156,7 @@ CRON.setInterval(asyncTask, 60*60*1000, 'asyncTask');
 
 In this example, we're assuming to have long running task, executed in a loop without delay, but after full execution:
 ```javascript
-var longRunningAsyncTask = function (ready) {
+const longRunningAsyncTask = function (ready) {
   asyncCall(function (error, result) {
     if(error){
       ready(); // <-- Always run `ready()`, even if call was unsuccessful
@@ -181,11 +183,12 @@ CRON.setInterval(longRunningAsyncTask, 0, 'longRunningAsyncTask');
 `ready()` *is passed as third argument into function.*
 
 ```javascript
-var syncTask = function (ready) {
+const syncTask = function (ready) {
   //...run sync code
   ready();
 };
-var asyncTask = function (ready) {
+
+const asyncTask = function (ready) {
   asyncCall(function () {
     //...run more async code
     ready();
@@ -201,14 +204,15 @@ CRON.setTimeout(asyncTask, 60*60*1000, 'asyncTask');
  - `func` {*Function*} - Function to execute
  - `uid`  {*String*}   - Unique app-wide task id
 
-*Immediate execute function, and only once.* `setImmidiate` *is useful for cluster - when you need to execute function immediately and only once across all servers.* `ready()` *is passed as third argument into function.*
+*Immediate execute the function, and only once.* `setImmidiate` *is useful for cluster - when you need to execute function immediately and only once across all servers.* `ready()` *is passed as the third argument into the function.*
 
 ```javascript
-var syncTask = function (ready) {
+const syncTask = function (ready) {
   //...run sync code
   ready();
 };
-var asyncTask = function (ready) {
+
+const asyncTask = function (ready) {
   asyncCall(function () {
     //...run more async code
     ready();
@@ -223,7 +227,7 @@ CRON.setImmidiate(asyncTask, 'asyncTask');
 *Cancel (abort) current interval timer.*
 
 ```javascript
-var timer = CRON.setInterval(func, 34789, 'unique-taskid');
+const timer = CRON.setInterval(func, 34789, 'unique-taskid');
 CRON.clearInterval(timer);
 ```
 
@@ -231,6 +235,6 @@ CRON.clearInterval(timer);
 *Cancel (abort) current timeout timer.*
 
 ```javascript
-var timer = CRON.setTimeout(func, 34789, 'unique-taskid');
+const timer = CRON.setTimeout(func, 34789, 'unique-taskid');
 CRON.clearTimeout(timer);
 ```
