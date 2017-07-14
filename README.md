@@ -12,7 +12,7 @@ __This is a server-only package.__
 - [Constructor](https://github.com/VeliovGroup/Meteor-CRON-jobs#initialization)
 - [setInterval](https://github.com/VeliovGroup/Meteor-CRON-jobs#setintervalfunc-delay)
 - [setTimeout](https://github.com/VeliovGroup/Meteor-CRON-jobs#settimeoutfunc-delay)
-- [setImmidiate](https://github.com/VeliovGroup/Meteor-CRON-jobs#setimmidiatefunc)
+- [setImmediate](https://github.com/VeliovGroup/Meteor-CRON-jobs#setImmediatefunc)
 - [clearInterval](https://github.com/VeliovGroup/Meteor-CRON-jobs#clearintervaltimer)
 - [clearTimeout](https://github.com/VeliovGroup/Meteor-CRON-jobs#cleartimeouttimer)
 
@@ -199,12 +199,12 @@ CRON.setTimeout(syncTask, 60*60*1000, 'syncTask');
 CRON.setTimeout(asyncTask, 60*60*1000, 'asyncTask');
 ```
 
-#### `setImmidiate(func, uid)`
+#### `setImmediate(func, uid)`
 
  - `func` {*Function*} - Function to execute
  - `uid`  {*String*}   - Unique app-wide task id
 
-*Immediate execute the function, and only once.* `setImmidiate` *is useful for cluster - when you need to execute function immediately and only once across all servers.* `ready()` *is passed as the third argument into the function.*
+*Immediate execute the function, and only once.* `setImmediate` *is useful for cluster - when you need to execute function immediately and only once across all servers.* `ready()` *is passed as the third argument into the function.*
 
 ```javascript
 const syncTask = function (ready) {
@@ -219,8 +219,8 @@ const asyncTask = function (ready) {
   });
 };
 
-CRON.setImmidiate(syncTask, 'syncTask');
-CRON.setImmidiate(asyncTask, 'asyncTask');
+CRON.setImmediate(syncTask, 'syncTask');
+CRON.setImmediate(asyncTask, 'asyncTask');
 ```
 
 #### `clearInterval(timer)`
