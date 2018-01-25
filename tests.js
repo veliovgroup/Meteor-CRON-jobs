@@ -1,0 +1,185 @@
+import { Meteor }       from 'meteor/meteor';
+import { CRONjob }      from 'meteor/ostrio:cron-jobs';
+import { assert }       from 'meteor/practicalmeteor:chai';
+import { it, describe } from 'meteor/practicalmeteor:mocha';
+
+const db          = Meteor.users.rawDatabase();
+const ZOMBIE_TIME = 8000;
+const RANDOM_GAP  = 256;
+const timestamps  = {};
+const callbacks   = {};
+
+describe('Has CRONjob Object', () => {
+  it('CRONjob is Constructor', () => {
+    assert.isFunction(CRONjob, 'CRONjob is Constructor');
+  });
+});
+
+const cron = new CRONjob({
+  db: db,
+  prefix: 'testCase',
+  zombieTime: ZOMBIE_TIME,
+  onError(message, details) {
+    console.error('[onError Hook]', message, details.uid);
+    if (message === 'One of your tasks is missing') {
+      cron.clearInterval(details.uid);
+    }
+  },
+  onExecuted(uid, details) {
+    if (!!~details.uid.indexOf('taskInterval') && timestamps[details.uid].length < 2) {
+      timestamps[details.uid].push(details.timestamp);
+    }
+
+    if (!!~details.uid.indexOf('taskTimeout') && timestamps[details.uid].length === 1) {
+      timestamps[details.uid].push(details.timestamp);
+    }
+
+    if ((!!~details.uid.indexOf('taskInterval') || !!~details.uid.indexOf('taskTimeout')) && timestamps[details.uid].length === 2) {
+      if (!!~details.uid.indexOf('taskInterval')) {
+        cron.clearInterval(details.uid);
+      }
+
+      const actual   = timestamps[details.uid][1] - timestamps[details.uid][0];
+      const expected = +new Date() - timestamps[details.uid][0];
+      const time     = expected - actual;
+
+      // console.log(details.uid, {actual, expected, time, emit: actual - expected});
+
+      assert.equal(time < RANDOM_GAP && time > -RANDOM_GAP, true, 'setInterval has expected execution periods');
+      callbacks[details.uid]();
+    }
+  }
+});
+
+const testInterval = (interval) => {
+  it(`setInterval ${interval}`, function (done) {
+    let taskId;
+    taskId = cron.setInterval((ready) => ready(), interval, `taskInterval-${interval}`);
+    callbacks[taskId] = done;
+    timestamps[taskId] = [];
+  });
+};
+
+const testTimeout = (delay) => {
+  it(`setTimeout ${delay}`, function (done) {
+    let taskId;
+    taskId = cron.setTimeout((ready) => ready(), delay, `taskTimeout-${delay}`);
+    callbacks[taskId] = done;
+    timestamps[taskId] = [+new Date()];
+  });
+};
+
+describe('CRONjob Instance', function () {
+  it('Check CRONjob instance properties', function () {
+    assert.instanceOf(cron, CRONjob, 'cron is instance of CRONjob');
+    assert.equal(cron.prefix, 'testCase', 'cron has prefix');
+    assert.instanceOf(cron.onError, Function, 'cron has onError');
+    assert.equal(cron.autoClear, false, 'cron has autoClear');
+    assert.equal(cron.zombieTime, ZOMBIE_TIME, 'cron has zombieTime');
+    assert.instanceOf(cron.onExecuted, Function, 'cron has onExecuted');
+    assert.equal(cron.resetOnInit, false, 'cron has resetOnInit');
+    assert.instanceOf(cron.tasks, Object, 'cron has tasks');
+  });
+});
+
+describe('setInterval', function () {
+  this.slow(30000);
+  this.timeout(32000);
+
+  testInterval(768);
+  testInterval(2000);
+  testInterval(5000);
+  testInterval(7000);
+});
+
+describe('setTimeout', function () {
+  this.slow(14000);
+  this.timeout(16000);
+
+  testTimeout(768);
+  testTimeout(2000);
+  testTimeout(5000);
+  testTimeout(7000);
+});
+
+describe('setImmediate', function () {
+  this.slow(RANDOM_GAP * 3);
+  this.timeout(RANDOM_GAP * 4);
+
+  it('setImmediate - Execution time', function (done) {
+    let time = +new Date();
+    cron.setImmediate((ready) => {
+      // console.log("IMMEDIATE", +new Date() - time, ((RANDOM_GAP * 2) + 1), +new Date() - time < ((RANDOM_GAP * 2) + 1));
+      assert.equal(+new Date() - time < ((RANDOM_GAP * 2) + 1), true, 'setImmediate - executed within appropriate time');
+      ready();
+      done();
+    }, 'taskImmediate-0');
+  });
+});
+
+
+describe('zombieTime (stuck task recovery)', function () {
+  this.slow(11000);
+  this.timeout(13000);
+
+  it('setInterval', function (done) {
+    let time = +new Date();
+    let i = 0;
+    const taskId = cron.setInterval((ready) => {
+      i++;
+      if (i === 1) {
+        time = +new Date() - time;
+        assert.equal(time < 2500 + RANDOM_GAP && time > 2500 - RANDOM_GAP, true, 'setInterval - first run within appropriate interval');
+        time = +new Date();
+      } else if (i === 2) {
+        time = +new Date() - time;
+
+        // console.log('taskInterval-zombie-2500', time, time < ZOMBIE_TIME + RANDOM_GAP, ZOMBIE_TIME + RANDOM_GAP);
+        assert.equal(time < (ZOMBIE_TIME + RANDOM_GAP), true, 'setInterval - recovered within appropriate zombieTime time-frame');
+        cron.clearInterval(taskId);
+        done();
+      }
+    }, 2500, 'taskInterval-zombie-2500');
+  });
+});
+
+describe('Cancel (abort) current timers', function () {
+  this.slow(4000);
+  this.timeout(5000);
+
+  it('setTimeout', function (done) {
+    let check = false;
+    const taskId = cron.setTimeout((ready) => {
+      check = true;
+      ready();
+      throw new Error('[Cancel (abort) current timers] [setTimeout] This shouldn\'t be executed');
+    }, 1500, 'taskTimeout-abort-1500');
+
+    setTimeout(() => {
+      cron.clearTimeout(taskId);
+    }, 600);
+
+    setTimeout(() => {
+      assert.equal(check, false, 'setTimeout - is cleared and never executed');
+      done();
+    }, 1800);
+  });
+
+  it('setInterval', function (done) {
+    let check = false;
+    const taskId = cron.setInterval((ready) => {
+      check = true;
+      ready();
+      throw new Error('[Cancel (abort) current timers] [setInterval] This shouldn\'t be executed');
+    }, 1500, 'taskInterval-abort-1500');
+
+    setTimeout(() => {
+      cron.clearInterval(taskId);
+    }, 600);
+
+    setTimeout(() => {
+      assert.equal(check, false, 'setInterval - is cleared and never executed');
+      done();
+    }, 1800);
+  });
+});
