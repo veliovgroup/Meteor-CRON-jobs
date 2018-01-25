@@ -15,6 +15,7 @@ __This is a server-only package.__
 - [setImmediate](https://github.com/VeliovGroup/Meteor-CRON-jobs#setImmediatefunc)
 - [clearInterval](https://github.com/VeliovGroup/Meteor-CRON-jobs#clearintervaltimer)
 - [clearTimeout](https://github.com/VeliovGroup/Meteor-CRON-jobs#cleartimeouttimer)
+- [~90% tests coverage](https://github.com/VeliovGroup/Meteor-CRON-jobs#testing)
 
 Install:
 ========
@@ -41,7 +42,7 @@ const bound = Meteor.bindEnvironment((callback) => {
 });
 
 const db   = Collection.rawDatabase();
-const CRON = new CRONjob({db: db});
+const cron = new CRONjob({db: db});
 
 const task = (ready) => {
   bound(() => {
@@ -49,17 +50,17 @@ const task = (ready) => {
   });
 };
 
-CRON.setInterval(task, 60*60*1000, 'task');
+cron.setInterval(task, 60*60*1000, 'task');
 ```
 
 API:
 ========
 `new CRONjob({opts})`:
- - `opts.db` {*Object*} - [Required] Connection to MongoDB
+ - `opts.db` {*Object*} - [Required] Connection to MongoDB, like returned as argument from `Meteor.users.rawDatabase()`
  - `opts.prefix` {*String*} - [Optional] use to create multiple named instances
  - `opts.autoClear` {*Boolean*} - [Optional] Remove (*Clear*) obsolete tasks (*any tasks which are not found in the instance memory (runtime), but exists in the database*). Obsolete tasks may appear in cases when it wasn't cleared from the database on process shutdown, and/or was removed/renamed in the app. Obsolete tasks may appear if multiple app instances running different codebase within the same database, and the task may not exist on one of the instances. Default: `false`
  - `opts.resetOnInit` {*Boolean*} - [Optional] make sure all old tasks is completed before set new one. Useful when you run only one instance of app, or multiple app instances on one machine, in case machine was reloaded during running task and task is unfinished
- - `opts.zombieTime` {*Number*} - [Optional] time in milliseconds, after this time - task will be interpreted as "*zombie*". This parameter allows to rescue task from "*zombie* mode" in case when `ready()` wasn't called, exception during runtime was thrown, or caused by bad logic. Where `resetOnInit` makes sure task is done on startup, but `zombieTime` doing the same function but during runtime. Default value is `900000` (*15 minutes*)
+ - `opts.zombieTime` {*Number*} - [Optional] time in milliseconds, after this time - task will be interpreted as "*zombie*". This parameter allows to rescue task from "*zombie* mode" in case when: `ready()` wasn't called, exception during runtime was thrown, or caused by bad logic. While `resetOnInit` option helps to make sure tasks are `done` on startup, `zombieTime` option helps to solve same issue, but during runtime. Default value is `900000` (*15 minutes*). It's not recommended to set this value to less than a minute (*60000ms*)
  - `opts.onError` {*Function*} - [Optional] Informational hook, called instead of throwing exceptions. Default: `false`. Called with two arguments:
      * `title` {*String*}
      * `details` {*Object*}
@@ -78,7 +79,7 @@ API:
 // Meteor.users.rawDatabase() is available in most Meteor setups
 // If this is not your case, you can use `rawDatabase` form any other collection
 const db   = Meteor.users.rawDatabase();
-const CRON = new CRONjob({db: db});
+const cron = new CRONjob({db: db});
 ```
 
 Note: This library relies on job ID, so you can not pass the same job (with same ID). Always use different `uid`, even for the same task:
@@ -88,14 +89,14 @@ const task = function (ready) {
   ready();
 };
 
-CRON.setInterval(task, 60*60*1000, 'task-1000');
-CRON.setInterval(task, 60*60*2000, 'task-2000');
+cron.setInterval(task, 60*60*1000, 'task-1000');
+cron.setInterval(task, 60*60*2000, 'task-2000');
 ```
 
 Passing arguments (*not really fancy solution, sorry*):
 ```javascript
-const CRON      = new CRONjob({db: db});
-const globalVar = 'Some top level or env.variable (can be changed over time)';
+const cron    = new CRONjob({db: db});
+let globalVar = 'Some top level or env.variable (can be changed over time)';
 
 const task = function (arg1, arg2, ready) {
   //...some code here
@@ -110,8 +111,8 @@ const task1 = function (ready) {
   task(1, globalVar, ready);
 };
 
-CRON.setInterval(taskB, 60*60*1000, 'taskB');
-CRON.setInterval(task1, 60*60*1000, 'task1');
+cron.setInterval(taskB, 60*60*1000, 'taskB');
+cron.setInterval(task1, 60*60*1000, 'task1');
 ```
 
 Note: To clean up old tasks via MongoDB use next query pattern:
@@ -145,8 +146,8 @@ const asyncTask = function (ready) {
   });
 };
 
-CRON.setInterval(syncTask, 60*60*1000, 'syncTask');
-CRON.setInterval(asyncTask, 60*60*1000, 'asyncTask');
+cron.setInterval(syncTask, 60*60*1000, 'syncTask');
+cron.setInterval(asyncTask, 60*60*1000, 'asyncTask');
 ```
 
 In this example, next task will not wait for the current task to finish:
@@ -163,8 +164,8 @@ const asyncTask = function (ready) {
   });
 };
 
-CRON.setInterval(syncTask, 60*60*1000, 'syncTask');
-CRON.setInterval(asyncTask, 60*60*1000, 'asyncTask');
+cron.setInterval(syncTask, 60*60*1000, 'syncTask');
+cron.setInterval(asyncTask, 60*60*1000, 'asyncTask');
 ```
 
 In this example, we're assuming to have long running task, executed in a loop without delay, but after full execution:
@@ -183,7 +184,7 @@ const longRunningAsyncTask = function (ready) {
   });
 };
 
-CRON.setInterval(longRunningAsyncTask, 0, 'longRunningAsyncTask');
+cron.setInterval(longRunningAsyncTask, 0, 'longRunningAsyncTask');
 ```
 
 #### `setTimeout(func, delay, uid)`
@@ -208,8 +209,8 @@ const asyncTask = function (ready) {
   });
 };
 
-CRON.setTimeout(syncTask, 60*60*1000, 'syncTask');
-CRON.setTimeout(asyncTask, 60*60*1000, 'asyncTask');
+cron.setTimeout(syncTask, 60*60*1000, 'syncTask');
+cron.setTimeout(asyncTask, 60*60*1000, 'asyncTask');
 ```
 
 #### `setImmediate(func, uid)`
@@ -232,24 +233,31 @@ const asyncTask = function (ready) {
   });
 };
 
-CRON.setImmediate(syncTask, 'syncTask');
-CRON.setImmediate(asyncTask, 'asyncTask');
+cron.setImmediate(syncTask, 'syncTask');
+cron.setImmediate(asyncTask, 'asyncTask');
 ```
 
 #### `clearInterval(timer)`
 *Cancel (abort) current interval timer.*
 
 ```javascript
-const timer = CRON.setInterval(func, 34789, 'unique-taskid');
-CRON.clearInterval(timer);
+const timer = cron.setInterval(func, 34789, 'unique-taskid');
+cron.clearInterval(timer);
 ```
 
 #### `clearTimeout(timer)`
 *Cancel (abort) current timeout timer.*
 
 ```javascript
-const timer = CRON.setTimeout(func, 34789, 'unique-taskid');
-CRON.clearTimeout(timer);
+const timer = cron.setTimeout(func, 34789, 'unique-taskid');
+cron.clearTimeout(timer);
+```
+
+Testing
+======
+```shell
+meteor test-packages ./ --driver-package=meteortesting:mocha
+# Be patient, tests are taking around 2 mins
 ```
 
 Support this project:
