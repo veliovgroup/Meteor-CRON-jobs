@@ -12,7 +12,7 @@
  2. If you're can not send a PR for some reason:
      - Create a new issue ticket
      - Describe your feature / request
-     - How you going to use it? Give a usage example(s)
+     - How you're going to use it? Give a usage example(s)
 
 ### Documentation is missing something or incorrect (have typos, etc.):
  1. PRs are always welcome - [send a PR](https://github.com/VeliovGroup/Meteor-CRON-jobs/compare)
@@ -20,5 +20,5 @@
      - Create a new issue ticket
      - Give a short description what you have changed/added and why
      - Make sure you're using correct markdown markup
-     - Make sure all code blocks starts with tripple ``` (*backtick*) and have a syntax tag, for more read [this docs](https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting)
-     - Post your addition/changes as issue ticket, we will manage it
+     - Make sure all code blocks starts with triple ``` (*backtick*) and have a syntax tag, for more read [this docs](https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting)
+     - Post addition/changes as issue ticket, we will manage it
