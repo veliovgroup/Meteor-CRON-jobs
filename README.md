@@ -50,7 +50,7 @@ const task = (ready) => {
   });
 };
 
-cron.setInterval(task, 60*60*1000, 'task');
+cron.setInterval(task, 60 * 60 * 1000, 'task');
 ```
 
 API:
@@ -89,7 +89,7 @@ const task = function (ready) {
   ready();
 };
 
-cron.setInterval(task, 60*60*1000, 'task-1000');
+cron.setInterval(task, 60 * 60 * 1000, 'task-1000');
 cron.setInterval(task, 60*60*2000, 'task-2000');
 ```
 
@@ -111,8 +111,8 @@ const task1 = function (ready) {
   task(1, globalVar, ready);
 };
 
-cron.setInterval(taskB, 60*60*1000, 'taskB');
-cron.setInterval(task1, 60*60*1000, 'task1');
+cron.setInterval(taskB, 60 * 60 * 1000, 'taskB');
+cron.setInterval(task1, 60 * 60 * 1000, 'task1');
 ```
 
 Note: To clean up old tasks via MongoDB use next query pattern:
@@ -146,8 +146,8 @@ const asyncTask = function (ready) {
   });
 };
 
-cron.setInterval(syncTask, 60*60*1000, 'syncTask');
-cron.setInterval(asyncTask, 60*60*1000, 'asyncTask');
+cron.setInterval(syncTask, 60 * 60 * 1000, 'syncTask');
+cron.setInterval(asyncTask, 60 * 60 * 1000, 'asyncTask');
 ```
 
 In this example, next task will not wait for the current task to finish:
@@ -164,8 +164,8 @@ const asyncTask = function (ready) {
   });
 };
 
-cron.setInterval(syncTask, 60*60*1000, 'syncTask');
-cron.setInterval(asyncTask, 60*60*1000, 'asyncTask');
+cron.setInterval(syncTask, 60 * 60 * 1000, 'syncTask');
+cron.setInterval(asyncTask, 60 * 60 * 1000, 'asyncTask');
 ```
 
 In this example, we're assuming to have long running task, executed in a loop without delay, but after full execution:
@@ -209,8 +209,8 @@ const asyncTask = function (ready) {
   });
 };
 
-cron.setTimeout(syncTask, 60*60*1000, 'syncTask');
-cron.setTimeout(asyncTask, 60*60*1000, 'asyncTask');
+cron.setTimeout(syncTask, 60 * 60 * 1000, 'syncTask');
+cron.setTimeout(asyncTask, 60 * 60 * 1000, 'asyncTask');
 ```
 
 #### `setImmediate(func, uid)`
