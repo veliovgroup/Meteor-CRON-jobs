@@ -1,6 +1,6 @@
 Package.describe({
   name: 'ostrio:cron-jobs',
-  version: '2.2.0',
+  version: '2.2.1',
   summary: 'Task scheduler. With support of clusters or multiple NodeJS instances.',
   git: 'https://github.com/VeliovGroup/Meteor-CRON-jobs',
   documentation: 'README.md'
@@ -13,10 +13,11 @@ Package.onUse(function (api) {
 });
 
 Package.onTest(function (api) {
-  api.use(['ecmascript', 'accounts-base', 'ostrio:cron-jobs', 'practicalmeteor:mocha', 'practicalmeteor:chai', 'meteortesting:mocha'], 'server');
+  api.use(['ecmascript', 'accounts-base', 'ostrio:cron-jobs', 'practicalmeteor:mocha', 'practicalmeteor:chai', 'meteortesting:mocha', 'jquery'], 'server');
+  api.use('jquery', 'client');
   api.addFiles('tests.js', 'server');
 });
 
 Npm.depends({
-  'josk': '2.0.1'
+  'josk': '2.0.2'
 });

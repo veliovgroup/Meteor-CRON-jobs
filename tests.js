@@ -1,7 +1,6 @@
 import { Meteor }       from 'meteor/meteor';
 import { CRONjob }      from 'meteor/ostrio:cron-jobs';
 import { assert }       from 'meteor/practicalmeteor:chai';
-import { it, describe } from 'meteor/practicalmeteor:mocha';
 
 const db          = Meteor.users.rawDatabase();
 const ZOMBIE_TIME = 8000;
@@ -40,7 +39,7 @@ const cron = new CRONjob({
       }
 
       const actual   = timestamps[details.uid][1] - timestamps[details.uid][0];
-      const expected = +new Date() - timestamps[details.uid][0];
+      const expected = Date.now() - timestamps[details.uid][0];
       const time     = expected - actual;
 
       // console.log(details.uid, {actual, expected, time, emit: actual - expected});
@@ -65,7 +64,7 @@ const testTimeout = (delay) => {
     let taskId;
     taskId = cron.setTimeout((ready) => ready(), delay, `taskTimeout-${delay}`);
     callbacks[taskId] = done;
-    timestamps[taskId] = [+new Date()];
+    timestamps[taskId] = [Date.now()];
   });
 };
 
@@ -107,10 +106,10 @@ describe('setImmediate', function () {
   this.timeout(RANDOM_GAP * 4);
 
   it('setImmediate - Execution time', function (done) {
-    let time = +new Date();
+    let time = Date.now();
     cron.setImmediate((ready) => {
-      // console.log("IMMEDIATE", +new Date() - time, ((RANDOM_GAP * 2) + 1), +new Date() - time < ((RANDOM_GAP * 2) + 1));
-      assert.equal(+new Date() - time < ((RANDOM_GAP * 2) + 1), true, 'setImmediate - executed within appropriate time');
+      // console.log("IMMEDIATE", Date.now() - time, ((RANDOM_GAP * 2) + 1), Date.now() - time < ((RANDOM_GAP * 2) + 1));
+      assert.equal(Date.now() - time < ((RANDOM_GAP * 2) + 1), true, 'setImmediate - executed within appropriate time');
       ready();
       done();
     }, 'taskImmediate-0');
@@ -123,16 +122,16 @@ describe('zombieTime (stuck task recovery)', function () {
   this.timeout(13000);
 
   it('setInterval', function (done) {
-    let time = +new Date();
+    let time = Date.now();
     let i = 0;
     const taskId = cron.setInterval((ready) => {
       i++;
       if (i === 1) {
-        time = +new Date() - time;
+        time = Date.now() - time;
         assert.equal(time < 2500 + RANDOM_GAP && time > 2500 - RANDOM_GAP, true, 'setInterval - first run within appropriate interval');
-        time = +new Date();
+        time = Date.now();
       } else if (i === 2) {
-        time = +new Date() - time;
+        time = Date.now() - time;
 
         // console.log('taskInterval-zombie-2500', time, time < ZOMBIE_TIME + RANDOM_GAP, ZOMBIE_TIME + RANDOM_GAP);
         assert.equal(time < (ZOMBIE_TIME + RANDOM_GAP), true, 'setInterval - recovered within appropriate zombieTime time-frame');
