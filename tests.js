@@ -42,7 +42,7 @@ const cron = new CRONjob({
       const expected = Date.now() - timestamps[details.uid][0];
       const time     = expected - actual;
 
-      // console.log(details.uid, {actual, expected, time, emit: actual - expected});
+      console.log(details.uid, {actual, expected, time, emit: actual - expected});
 
       assert.equal(time < RANDOM_GAP && time > -RANDOM_GAP, true, 'setInterval has expected execution periods');
       callbacks[details.uid]();
@@ -85,20 +85,32 @@ describe('setInterval', function () {
   this.slow(30000);
   this.timeout(32000);
 
-  testInterval(768);
-  testInterval(2000);
-  testInterval(5000);
-  testInterval(7000);
+  testInterval(1000);
+  testInterval(1001);
+  testInterval(1002);
+  testInterval(1003);
+  testInterval(1004);
+  testInterval(1005);
+  testInterval(1006);
+  testInterval(1007);
+  testInterval(1008);
+  testInterval(1009);
 });
 
 describe('setTimeout', function () {
   this.slow(14000);
   this.timeout(16000);
 
-  testTimeout(768);
-  testTimeout(2000);
-  testTimeout(5000);
-  testTimeout(7000);
+  testTimeout(1000);
+  testTimeout(1001);
+  testTimeout(1002);
+  testTimeout(1003);
+  testTimeout(1004);
+  testTimeout(1005);
+  testTimeout(1006);
+  testTimeout(1007);
+  testTimeout(1008);
+  testTimeout(1009);
 });
 
 describe('setImmediate', function () {
@@ -108,7 +120,7 @@ describe('setImmediate', function () {
   it('setImmediate - Execution time', function (done) {
     let time = Date.now();
     cron.setImmediate((ready) => {
-      // console.log("IMMEDIATE", Date.now() - time, ((RANDOM_GAP * 2) + 1), Date.now() - time < ((RANDOM_GAP * 2) + 1));
+      console.log('IMMEDIATE', Date.now() - time, ((RANDOM_GAP * 2) + 1), Date.now() - time < ((RANDOM_GAP * 2) + 1));
       assert.equal(Date.now() - time < ((RANDOM_GAP * 2) + 1), true, 'setImmediate - executed within appropriate time');
       ready();
       done();
@@ -133,7 +145,7 @@ describe('zombieTime (stuck task recovery)', function () {
       } else if (i === 2) {
         time = Date.now() - time;
 
-        // console.log('taskInterval-zombie-2500', time, time < ZOMBIE_TIME + RANDOM_GAP, ZOMBIE_TIME + RANDOM_GAP);
+        console.log('taskInterval-zombie-2500', time, time < ZOMBIE_TIME + RANDOM_GAP, ZOMBIE_TIME + RANDOM_GAP);
         assert.equal(time < (ZOMBIE_TIME + RANDOM_GAP), true, 'setInterval - recovered within appropriate zombieTime time-frame');
         cron.clearInterval(taskId);
         done();
