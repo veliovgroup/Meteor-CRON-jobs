@@ -1,6 +1,6 @@
 Package.describe({
   name: 'ostrio:cron-jobs',
-  version: '2.2.2',
+  version: '2.2.3',
   summary: 'Task scheduler. With support of clusters or multiple NodeJS instances.',
   git: 'https://github.com/VeliovGroup/Meteor-CRON-jobs',
   documentation: 'README.md'
@@ -19,5 +19,5 @@ Package.onTest(function (api) {
 });
 
 Npm.depends({
-  'josk': '2.0.4'
+  'josk': '2.0.5'
 });

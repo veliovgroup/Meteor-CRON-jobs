@@ -2,9 +2,9 @@
   "lockfileVersion": 1,
   "dependencies": {
     "josk": {
-      "version": "2.0.4",
-      "resolved": "https://registry.npmjs.org/josk/-/josk-2.0.4.tgz",
-      "integrity": "sha512-h3OTx46glFaKsEY9QpfMUEIHCQhMGIOj0yYyBLfRCfXQwryBRuDA635Xl4lN2MHpFHO+0GlQVuGjChGhGMVeyw=="
+      "version": "2.0.5",
+      "resolved": "https://registry.npmjs.org/josk/-/josk-2.0.5.tgz",
+      "integrity": "sha512-a2ZlBKBDj7Z7M0k/0Dv8ce/grtgVzqKet8QEbr0i2C1p3wdFIuonTSJJQKYEWfaR75VcsvcdOF1spW0RCVwbXw=="
     }
   }
 }
